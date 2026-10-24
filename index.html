@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sardar Telecom &amp; Mobile Point</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./config.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172b3f;
+        --muted: #617286;
+        --line: #dce5ed;
+        --blue: #155eef;
+        --navy: #17324d;
+        --surface: #ffffff;
+        --bg: #f3f6fa;
+        font-family: Inter, "Noto Sans Bengali", "Segoe UI", Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; color: var(--ink); background: var(--bg); }
+      header {
+        display: flex; align-items: center; justify-content: space-between; gap: 20px;
+        padding: 20px max(20px, calc((100vw - 1200px) / 2)); color: #fff; background: var(--navy);
+      }
+      h1 { margin: 0 0 5px; font-size: 22px; }
+      header p { margin: 0; color: #d3dfeb; font-size: 13px; }
+      .header-actions { display: flex; align-items: center; gap: 10px; }
+      main { max-width: 1200px; margin: 24px auto; padding: 0 20px 40px; }
+      .toolbar { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+      .metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+      .card, section { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+      .metric { padding: 16px; }
+      .metric span { display: block; color: var(--muted); font-size: 12px; }
+      .metric strong { display: block; margin-top: 9px; font-size: 21px; }
+      .layout { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.6fr); gap: 16px; align-items: start; }
+      .stack { display: grid; gap: 16px; }
+      section { padding: 18px; }
+      h2 { margin: 0 0 14px; font-size: 16px; }
+      form { display: grid; gap: 10px; }
+      .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; }
+      input, select, textarea, button {
+        min-height: 39px; border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px;
+        font: inherit; font-size: 13px;
+      }
+      input, select, textarea { width: 100%; color: var(--ink); background: #fff; }
+      textarea { min-height: 62px; resize: vertical; }
+      button { cursor: pointer; color: #fff; background: var(--blue); border-color: var(--blue); font-weight: 600; }
+      button.secondary { color: var(--ink); background: #fff; border-color: var(--line); }
+      button.small { min-height: 30px; padding: 5px 8px; font-size: 12px; }
+      button:disabled { opacity: .6; cursor: wait; }
+      .product-input-row { display: flex; gap: 8px; }
+      .product-input-row input { min-width: 0; }
+      .product-input-row button { flex: 0 0 auto; }
+      .cart, .table-wrap { overflow-x: auto; }
+      .cart input[data-item-discount] { width: 68px; min-height: 30px; padding: 4px; }
+      table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      th, td { padding: 9px 8px; border-bottom: 1px solid #edf1f5; text-align: left; white-space: nowrap; }
+      th { color: var(--muted); font-weight: 600; }
+      .empty { color: var(--muted); padding: 16px 8px; text-align: center; }
+      #notice { position: fixed; right: 20px; bottom: 20px; z-index: 2; max-width: min(420px, calc(100vw - 40px)); padding: 12px 16px; border-radius: 8px; color: #fff; background: #18794e; box-shadow: 0 6px 24px #152c4433; }
+      #notice.error { background: #b42318; }
+      #notice[hidden] { display: none; }
+      .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .section-heading h2 { margin-bottom: 0; }
+      .page-nav { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 4px; }
+      .page-nav button { flex: 0 0 auto; color: var(--muted); background: #fff; border-color: var(--line); }
+      .page-nav button[aria-current="page"] { color: #fff; background: var(--blue); border-color: var(--blue); }
+      .page { display: grid; gap: 16px; }
+      .page[hidden] { display: none; }
+      .page .metrics { margin-bottom: 0; }
+      #invoiceReceipt { display: none; }
+      #invoiceReceipt h1 { margin: 0 0 4px; font-size: 22px; }
+      #invoiceReceipt h2 { margin: 0 0 12px; }
+      .receipt-meta { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 12px 0; }
+      .receipt-meta p { margin: 0; }
+      .receipt-total { margin-top: 12px; text-align: right; font-size: 18px; font-weight: 700; }
+      .receipt-subtotal, .receipt-discount { margin: 4px 0; text-align: right; }
+      .receipt-items-wrap { margin-top: 12px; }
+      .receipt-thanks { margin-top: 20px; text-align: center; }
+      .receipt-return-policy { margin: 8px 0 0; text-align: center; font-size: 12px; }
+      #qrScanner[hidden] { display: none; }
+      .scanner-overlay {
+        position: fixed; inset: 0; z-index: 5; display: grid; place-items: center;
+        padding: 20px; background: #102030bb;
+      }
+      .scanner-dialog {
+        width: min(100%, 520px); padding: 18px; border-radius: 12px;
+        background: #fff; box-shadow: 0 12px 40px #0004;
+      }
+      .scanner-dialog h2 { margin: 0 0 8px; }
+      .scanner-dialog p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+      .scanner-dialog p.scanner-error { color: #b42318; }
+      .scanner-dialog p.scanner-loading { color: var(--muted); }
+      .scanner-dialog video {
+        display: block; width: 100%; max-height: 60vh; border-radius: 8px;
+        background: #101820; object-fit: cover;
+      }
+      .scanner-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+      @media print {
+        @page { size: 58mm auto; margin: 2mm; }
+        html, body {
+          width: 54mm; min-width: 54mm; margin: 0; padding: 0; color: #000; background: #fff;
+          overflow: visible !important;
+        }
+        body { font-family: Arial, sans-serif; font-size: 9pt; }
+        body * { visibility: hidden !important; }
+        body.print-invoice #invoiceReceipt,
+        body.print-invoice #invoiceReceipt * { visibility: visible !important; }
+        body.print-invoice #invoiceReceipt {
+          display: block !important; position: absolute; top: 0; left: 0; width: 54mm; max-width: 54mm;
+          margin: 0; border: 0; padding: 0; background: #fff; overflow: visible !important;
+        }
+        body.print-invoice #invoiceReceipt h1 { font-size: 14pt; text-align: center; }
+        body.print-invoice #invoiceReceipt h2 { font-size: 11pt; text-align: center; }
+        body.print-invoice #invoiceReceipt .receipt-meta { font-size: 8pt; }
+        body.print-invoice #invoiceReceipt .receipt-items-wrap { margin-top: 10px; }
+        body.print-invoice #invoiceReceipt table { width: 100%; table-layout: fixed; font-size: 7pt; border-collapse: collapse; }
+        body.print-invoice #invoiceReceipt th,
+        body.print-invoice #invoiceReceipt td { padding: 3px 1px; white-space: normal; overflow-wrap: anywhere; }
+        body.print-invoice #invoiceReceipt th:nth-child(1),
+        body.print-invoice #invoiceReceipt td:nth-child(1) { width: 27%; text-align: left; }
+        body.print-invoice #invoiceReceipt th:nth-child(2),
+        body.print-invoice #invoiceReceipt td:nth-child(2) { width: 10%; text-align: center; }
+        body.print-invoice #invoiceReceipt th:nth-child(3),
+        body.print-invoice #invoiceReceipt td:nth-child(3) { width: 22%; text-align: right; }
+        body.print-invoice #invoiceReceipt th:nth-child(4),
+        body.print-invoice #invoiceReceipt td:nth-child(4) { width: 15%; text-align: right; }
+        body.print-invoice #invoiceReceipt th:nth-child(5),
+        body.print-invoice #invoiceReceipt td:nth-child(5) { width: 26%; text-align: right; }
+        body.print-invoice #invoiceReceipt th,
+        body.print-invoice #invoiceReceipt td { border-bottom: 1px solid #bbb; }
+        body.print-invoice #invoiceReceipt .receipt-total { font-size: 11pt; text-align: right; }
+        body.print-invoice #invoiceReceipt .receipt-thanks { margin-top: 16px; }
+        body.print-invoice #invoiceReceipt .receipt-return-policy { font-size: 7pt; }
+      }
+      @media (max-width: 900px) {
+        .metrics { grid-template-columns: repeat(3, 1fr); }
+        .layout { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 580px) {
+        header { align-items: flex-start; flex-direction: column; padding: 16px 20px; }
+        .header-actions { width: 100%; }
+        .header-actions select { flex: 1; }
+        main { margin-top: 16px; padding-right: 12px; padding-left: 12px; }
+        .metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .metric { padding: 12px; }
+        .metric strong { font-size: 17px; }
+        .fields { grid-template-columns: 1fr; }
+        section { padding: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Sardar Telecom &amp; Mobile Point</h1>
+        <p data-i18n="subtitle">Sales, stock and expense management</p>
+      </div>
+      <div class="header-actions">
+        <button id="googleSignInButton" type="button" data-i18n="googleSignIn">Sign in with Google</button>
+        <button id="languageButton" class="secondary" type="button">বাংলা</button>
+      </div>
+    </header>
+    <main>
+      <nav class="page-nav" aria-label="Main navigation">
+        <button type="button" data-page="dashboardPage" aria-current="page" data-i18n="dashboard">Dashboard</button>
+        <button type="button" data-page="salesPage" data-i18n="sales">Sales</button>
+        <button type="button" data-page="stockPage" data-i18n="stockPage">Stock</button>
+        <button type="button" data-page="expensesPage" data-i18n="expenses">Expenses</button>
+        <button type="button" data-page="productsPage" data-i18n="products">Products</button>
+      </nav>
+      <div id="dashboardPage" class="page">
+        <div class="metrics">
+          <div class="card metric"><span data-i18n="todaySales">Today's sales</span><strong id="todaySales">৳0</strong></div>
+          <div class="card metric"><span data-i18n="monthSales">This month's sales</span><strong id="monthSales">৳0</strong></div>
+          <div class="card metric"><span data-i18n="monthProfit">Estimated monthly profit</span><strong id="monthProfit">৳0</strong></div>
+          <div class="card metric"><span data-i18n="monthExpenses">This month's expenses</span><strong id="monthExpenses">৳0</strong></div>
+          <div class="card metric"><span data-i18n="inventoryValue">Stock cost value</span><strong id="inventoryValue">৳0</strong></div>
+        </div>
+        <div class="card metric"><span data-i18n="lowStock">Products with stock below 5</span><strong id="lowStock">0</strong></div>
+        <section>
+          <h2 data-i18n="lowStockList">Products with low stock</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th data-i18n="sku">SKU</th><th data-i18n="product">Product</th><th data-i18n="stock">Stock</th></tr></thead>
+              <tbody id="lowStockRows"></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <div class="section-heading">
+            <h2 data-i18n="recentSales">Recent sales</h2>
+            <button class="secondary small" type="button" data-go-page="salesPage" data-i18n="viewSales">View sales</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th data-i18n="date">Date</th><th data-i18n="invoice">Invoice</th><th data-i18n="product">Product</th><th data-i18n="quantity">Qty</th><th data-i18n="total">Total</th></tr></thead>
+              <tbody id="salesRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div id="salesPage" class="page" hidden>
+        <div class="card metric">
+          <span data-i18n="todaySales">Today's sales</span>
+          <strong id="todaySalesOnSales">৳0</strong>
+        </div>
+        <section>
+          <h2 data-i18n="recordSale">Record a sale</h2>
+          <form id="saleForm">
+            <div class="fields">
+              <label><span data-i18n="product">Product</span><span class="product-input-row"><input id="saleProduct" list="saleProductOptions" data-i18n-placeholder="searchProduct" placeholder="Search product or SKU" autocomplete="off" required><button id="scanQrButton" type="button" class="secondary" data-i18n="scanQr">Scan QR</button></span><datalist id="saleProductOptions"></datalist></label>
+              <label><span data-i18n="quantity">Quantity</span><input id="saleQuantity" type="number" min="0.01" step="any" value="1" required></label>
+              <label><span data-i18n="unitPrice">Unit price (৳)</span><input id="salePrice" type="number" min="0" step="0.01" required></label>
+              <label><span data-i18n="customer">Customer (optional)</span><input id="saleCustomer"></label>
+            </div>
+            <label><span data-i18n="payment">Payment method</span>
+              <select id="salePayment" required>
+                <option value="Cash" data-i18n="cash">Cash</option>
+                <option value="Mobile Banking" data-i18n="mobileBanking">Mobile Banking</option>
+                <option value="Card" data-i18n="card">Card</option>
+                <option value="Due" data-i18n="due">Due</option>
+              </select>
+            </label>
+            <button type="button" id="addCartButton" class="secondary" data-i18n="addToCart">Add item</button>
+            <div class="cart">
+              <table><thead><tr><th data-i18n="product">Product</th><th data-i18n="quantity">Qty</th><th data-i18n="itemDiscountPercent">Discount %</th><th data-i18n="total">Total</th><th></th></tr></thead>
+                <tbody id="cartRows"><tr><td class="empty" colspan="5" data-i18n="cartEmpty">No items added</td></tr></tbody>
+              </table>
+            </div>
+            <div class="fields">
+              <label><span data-i18n="discount">Discount (৳)</span><input id="saleDiscount" type="number" min="0" step="0.01" value="0"></label>
+              <label><span data-i18n="payableTotal">Payable total</span><input id="salePayableTotal" type="text" value="৳0" readonly></label>
+            </div>
+            <button type="submit" data-i18n="saveSale">Save sale</button>
+          </form>
+        </section>
+        <section id="salesHistorySection">
+          <div class="section-heading">
+            <h2 data-i18n="recentSales">Recent sales</h2>
+            <button class="secondary small" type="button" data-refresh-data data-i18n="refresh">Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th data-i18n="date">Date</th><th data-i18n="invoice">Invoice</th><th data-i18n="product">Product</th><th data-i18n="total">Total</th><th data-i18n="print">Print</th><th data-i18n="delete">Delete</th></tr></thead>
+              <tbody id="recentSalesRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div id="stockPage" class="page" hidden>
+        <section>
+          <h2 data-i18n="addStock">Add stock</h2>
+          <form id="stockForm">
+            <label><span data-i18n="product">Product</span><select id="stockProduct" required></select></label>
+            <label><span data-i18n="quantityToAdd">Quantity to add</span><input id="stockQuantity" type="number" min="0.01" step="any" required></label>
+            <label><span data-i18n="notes">Notes (optional)</span><input id="stockNotes"></label>
+            <button type="submit" data-i18n="saveStock">Add stock</button>
+          </form>
+        </section>
+        <section>
+          <div class="section-heading"><h2 data-i18n="stockOverview">Stock overview</h2><button id="refreshButton" class="secondary small" type="button" data-i18n="refresh">Refresh</button></div>
+          <div class="table-wrap">
+            <table><thead><tr><th data-i18n="sku">SKU</th><th data-i18n="product">Product</th><th data-i18n="category">Category</th><th data-i18n="stock">Stock</th><th data-i18n="sellingPrice">Selling price</th></tr></thead>
+              <tbody id="inventoryRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div id="expensesPage" class="page" hidden>
+        <section>
+          <h2 data-i18n="recordExpense">Record an expense</h2>
+          <form id="expenseForm">
+            <div class="fields">
+              <label><span data-i18n="category">Category</span><input id="expenseCategory" required></label>
+              <label><span data-i18n="amount">Amount (৳)</span><input id="expenseAmount" type="number" min="0.01" step="0.01" required></label>
+            </div>
+            <label><span data-i18n="payment">Payment method</span>
+              <select id="expensePayment">
+                <option value="Cash" data-i18n="cash">Cash</option>
+                <option value="Mobile Banking" data-i18n="mobileBanking">Mobile Banking</option>
+                <option value="Card" data-i18n="card">Card</option>
+              </select>
+            </label>
+            <label><span data-i18n="notes">Notes (optional)</span><input id="expenseNotes"></label>
+            <button type="submit" data-i18n="saveExpense">Save expense</button>
+          </form>
+        </section>
+      </div>
+      <div id="productsPage" class="page" hidden>
+        <section>
+          <h2 data-i18n="newProduct">Add a product</h2>
+          <form id="productForm">
+            <div class="fields">
+              <label><span data-i18n="sku">SKU / code</span><input id="newSku" required></label>
+              <label><span data-i18n="productName">Product name</span><input id="newProductName" required></label>
+              <label><span data-i18n="category">Category</span><input id="newCategory"></label>
+              <label><span data-i18n="costPrice">Cost price (৳)</span><input id="newCost" type="number" min="0" step="0.01" required></label>
+              <label><span data-i18n="sellingPrice">Selling price (৳)</span><input id="newPrice" type="number" min="0" step="0.01" required></label>
+              <label><span data-i18n="initialStock">Initial stock</span><input id="newStock" type="number" min="0" step="any" value="0"></label>
+            </div>
+            <button type="submit" data-i18n="saveProduct">Save product</button>
+          </form>
+        </section>
+      </div>
+    </main>
+    <div id="qrScanner" class="scanner-overlay" role="dialog" aria-modal="true" aria-labelledby="qrScannerTitle" hidden>
+      <div class="scanner-dialog">
+        <h2 id="qrScannerTitle" data-i18n="scanQr">Scan QR</h2>
+        <p data-i18n="qrScannerHint">Point the camera at a product QR code containing its SKU or exact product name.</p>
+        <p id="qrScannerStatus" class="scanner-loading" role="status" aria-live="polite" hidden></p>
+        <video id="qrScannerVideo" autoplay muted playsinline></video>
+        <div class="scanner-actions">
+          <button id="retryQrScanner" type="button" class="secondary" data-i18n="retryScan" hidden>Try again</button>
+          <button id="closeQrScanner" type="button" class="secondary" data-i18n="cancelScan">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <section id="invoiceReceipt" hidden aria-label="Sales invoice">
+      <h1>Sardar Telecom &amp; Mobile Point</h1>
+      <h2 data-i18n="invoiceTitle">Sales invoice</h2>
+      <div class="receipt-meta">
+        <p><strong data-i18n="invoice">Invoice</strong>: <span id="receiptInvoice"></span></p>
+        <p><strong data-i18n="receiptDate">Date</strong>: <span id="receiptDate"></span></p>
+        <p><strong data-i18n="customer">Customer</strong>: <span id="receiptCustomer"></span></p>
+        <p><strong data-i18n="payment">Payment method</strong>: <span id="receiptPayment"></span></p>
+      </div>
+      <div class="receipt-items-wrap">
+        <table>
+          <thead><tr><th data-i18n="product">Product</th><th data-i18n="quantity">Qty</th><th data-i18n="unitPrice">Price</th><th data-i18n="itemDiscountPercent">Disc. %</th><th data-i18n="total">Total</th></tr></thead>
+          <tbody id="receiptItems"></tbody>
+        </table>
+      </div>
+      <p class="receipt-subtotal"><span data-i18n="subtotal">Subtotal</span>: <span id="receiptSubtotal"></span></p>
+      <p class="receipt-discount"><span data-i18n="discount">Discount (৳)</span>: <span id="receiptDiscount"></span></p>
+      <p class="receipt-total"><span data-i18n="grandTotal">Grand total</span>: <span id="receiptTotal"></span></p>
+      <p class="receipt-thanks" data-i18n="thankYou">Thank you for your purchase!</p>
+      <p class="receipt-return-policy" data-i18n="returnPolicy">বিক্রয়কৃত পণ্য ফেরত নেওয়া হয় না</p>
+    </section>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <script>
+      const translations = {
+        en: {
+          dashboard: 'Dashboard', sales: 'Sales', stockPage: 'Stock', expenses: 'Expenses',
+          products: 'Products', viewSales: 'View sales',
+          searchProduct: 'Search product or SKU', scanQr: 'Scan QR',
+          qrScannerHint: 'Point the camera at a product QR code containing its SKU or exact product name.',
+          cancelScan: 'Cancel', retryScan: 'Try again',
+          qrUnsupported: 'QR scanning is not supported in this browser. Use the product search instead.',
+          qrSecureContext: 'Camera scanning requires a secure HTTPS page.',
+          qrCameraPermission: 'Camera access was denied or blocked. Allow camera access for this site, then try again.',
+          qrCameraMissing: 'No camera was found on this device.',
+          qrCameraBusy: 'The camera could not start. Close other apps using the camera and try again.',
+          qrCameraTimeout: 'The camera did not start. Allow camera access in your browser, then try again.',
+          qrCameraStarting: 'Starting the camera. Allow camera access if your browser asks.',
+          qrCameraError: 'Could not start the camera: ',
+          qrDecoderError: 'Could not load the QR scanner. Check your internet connection and try again.',
+          qrNoMatch: 'No product matches this QR code. Use a QR code with the product SKU or exact name.',
+          qrProductSelected: 'Product selected: ',
+          invoiceTitle: 'Sales invoice', receiptDate: 'Date', subtotal: 'Subtotal', discount: 'Discount (৳)', itemDiscountPercent: 'Discount %', payableTotal: 'Payable total', grandTotal: 'Grand total',
+          thankYou: 'Thank you for your purchase!', returnPolicy: 'বিক্রয়কৃত পণ্য ফেরত নেওয়া হয় না', walkIn: 'Walk-in customer',
+          subtitle: 'One shop · Sales, stock and expense management', todaySales: "Today's sales",
+          googleSignIn: 'Sign in with Google', googleSignedIn: 'Google account connected', googleConfigMissing: 'Set the Google OAuth client ID and Apps Script project ID in config.js.',
+          googleApiError: 'Google API error: ', googleSignInError: 'Google sign-in failed: ',
+          monthSales: "This month's sales", monthProfit: 'Estimated monthly profit', monthExpenses: "This month's expenses",
+          inventoryValue: 'Stock cost value', lowStock: 'Products with stock below 5', lowStockList: 'Products with low stock',
+          noLowStock: 'No products below 5 in stock', recordSale: 'Record a sale',
+          product: 'Product', quantity: 'Quantity', unitPrice: 'Unit price (৳)', customer: 'Customer (optional)',
+          payment: 'Payment method', cash: 'Cash', mobileBanking: 'Mobile Banking', card: 'Card', due: 'Due',
+          addToCart: 'Add item', total: 'Total', cartEmpty: 'No items added', remove: 'Remove', saveSale: 'Save & Print',
+          addStock: 'Add stock', quantityToAdd: 'Quantity to add', notes: 'Notes (optional)', saveStock: 'Add stock',
+          recordExpense: 'Record an expense', category: 'Category', amount: 'Amount (৳)', saveExpense: 'Save expense',
+          newProduct: 'Add a product', sku: 'SKU / code', productName: 'Product name', costPrice: 'Cost price (৳)',
+          sellingPrice: 'Selling price', initialStock: 'Initial stock',
+          saveProduct: 'Save product', stockOverview: 'Stock overview', refresh: 'Refresh', stock: 'Stock',
+          recentSales: 'Recent sales', date: 'Date', invoice: 'Invoice', loading: 'Loading…', print: 'Print',
+          delete: 'Delete', deleteInvoiceConfirm: 'Delete invoice {invoice}? The sold quantities will be returned to stock.', saleDeleted: 'Invoice deleted and stock restored: ',
+          noProducts: 'No products yet', noSales: 'No sales yet', addedCart: 'Item added to sale',
+          saleSaved: 'Sale saved. Invoice: ', stockSaved: 'Stock added successfully', expenseSaved: 'Expense recorded',
+          productSaved: 'Product added successfully', invalidItemDiscount: 'Discount percentage must be between 0 and 100.'
+        },
+        bn: {
+          dashboard: 'ড্যাশবোর্ড', sales: 'বিক্রয়', stockPage: 'স্টক', expenses: 'খরচ',
+          products: 'পণ্য', viewSales: 'বিক্রয় দেখুন',
+          searchProduct: 'পণ্য বা SKU দিয়ে খুঁজুন', scanQr: 'QR স্ক্যান',
+          qrScannerHint: 'পণ্যের SKU বা সঠিক নাম থাকা QR কোডের দিকে ক্যামেরা ধরুন।',
+          cancelScan: 'বাতিল', retryScan: 'আবার চেষ্টা করুন',
+          qrUnsupported: 'এই ব্রাউজারে QR স্ক্যান সমর্থিত নয়। পণ্য খুঁজে নির্বাচন করুন।',
+          qrSecureContext: 'ক্যামেরা দিয়ে স্ক্যান করতে নিরাপদ HTTPS পেজ প্রয়োজন।',
+          qrCameraPermission: 'ক্যামেরার অনুমতি পাওয়া যায়নি বা ব্লক হয়েছে। এই সাইটের ক্যামেরার অনুমতি দিয়ে আবার চেষ্টা করুন।',
+          qrCameraMissing: 'এই ডিভাইসে কোনো ক্যামেরা পাওয়া যায়নি।',
+          qrCameraBusy: 'ক্যামেরা চালু হয়নি। ক্যামেরা ব্যবহার করছে এমন অন্য অ্যাপ বন্ধ করে আবার চেষ্টা করুন।',
+          qrCameraTimeout: 'ক্যামেরা চালু হয়নি। ব্রাউজারে ক্যামেরার অনুমতি দিয়ে আবার চেষ্টা করুন।',
+          qrCameraStarting: 'ক্যামেরা চালু হচ্ছে। ব্রাউজারে অনুমতি চাইলে অনুমতি দিন।',
+          qrCameraError: 'ক্যামেরা চালু করা যায়নি: ',
+          qrDecoderError: 'QR স্ক্যানার লোড করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
+          qrNoMatch: 'এই QR কোডের সঙ্গে কোনো পণ্য মেলেনি। পণ্যের SKU বা সঠিক নামের QR কোড ব্যবহার করুন।',
+          qrProductSelected: 'পণ্য নির্বাচন হয়েছে: ',
+          invoiceTitle: 'বিক্রয় ইনভয়েস', receiptDate: 'তারিখ', subtotal: 'মোট', discount: 'ডিসকাউন্ট (৳)', itemDiscountPercent: 'ডিসকাউন্ট %', payableTotal: 'প্রদেয় টাকা', grandTotal: 'সর্বমোট',
+          thankYou: 'কেনাকাটার জন্য ধন্যবাদ!', returnPolicy: 'বিক্রয়কৃত পণ্য ফেরত নেওয়া হয় না', walkIn: 'সাধারণ ক্রেতা',
+          subtitle: 'একটি দোকান · বিক্রয়, স্টক ও খরচ ব্যবস্থাপনা', todaySales: 'আজকের বিক্রয়',
+          googleSignIn: 'Google দিয়ে প্রবেশ', googleSignedIn: 'Google অ্যাকাউন্ট সংযুক্ত হয়েছে', googleConfigMissing: 'config.js ফাইলে Google OAuth client ID এবং Apps Script project ID সেট করুন।',
+          googleApiError: 'Google API ত্রুটি: ', googleSignInError: 'Google সাইন-ইন ব্যর্থ হয়েছে: ',
+          monthSales: 'এই মাসের বিক্রয়', monthProfit: 'আনুমানিক মাসিক লাভ', monthExpenses: 'এই মাসের খরচ',
+          inventoryValue: 'স্টকের ক্রয়মূল্য', lowStock: '৫-এর কম স্টক আছে এমন পণ্য', lowStockList: 'কম স্টক থাকা পণ্যের তালিকা',
+          noLowStock: '৫-এর কম স্টক থাকা পণ্য নেই', recordSale: 'বিক্রয় লিখুন',
+          product: 'পণ্য', quantity: 'পরিমাণ', unitPrice: 'একক মূল্য (৳)', customer: 'ক্রেতা (ঐচ্ছিক)',
+          payment: 'পেমেন্টের ধরন', cash: 'নগদ', mobileBanking: 'মোবাইল ব্যাংকিং', card: 'কার্ড', due: 'বাকি',
+          addToCart: 'পণ্য যোগ করুন', total: 'মোট', cartEmpty: 'কোনো পণ্য যোগ হয়নি', remove: 'বাদ দিন', saveSale: 'সংরক্ষণ ও প্রিন্ট',
+          addStock: 'স্টক যোগ করুন', quantityToAdd: 'যোগের পরিমাণ', notes: 'নোট (ঐচ্ছিক)', saveStock: 'স্টক যোগ করুন',
+          recordExpense: 'খরচ লিখুন', category: 'খাত', amount: 'পরিমাণ (৳)', saveExpense: 'খরচ সংরক্ষণ',
+          newProduct: 'নতুন পণ্য যোগ করুন', sku: 'SKU / কোড', productName: 'পণ্যের নাম', costPrice: 'ক্রয়মূল্য (৳)',
+          sellingPrice: 'বিক্রয়মূল্য', initialStock: 'প্রাথমিক স্টক',
+          saveProduct: 'পণ্য সংরক্ষণ', stockOverview: 'স্টকের বিবরণ', refresh: 'রিফ্রেশ', stock: 'স্টক',
+          recentSales: 'সাম্প্রতিক বিক্রয়', date: 'তারিখ', invoice: 'ইনভয়েস', loading: 'লোড হচ্ছে…', print: 'প্রিন্ট',
+          delete: 'মুছুন', deleteInvoiceConfirm: 'ইনভয়েস {invoice} মুছে ফেলবেন? বিক্রি হওয়া পণ্য স্টকে ফেরত যোগ হবে।', saleDeleted: 'ইনভয়েস মুছে স্টক ফেরত যোগ হয়েছে: ',
+          noProducts: 'এখনো কোনো পণ্য নেই', noSales: 'এখনো কোনো বিক্রয় নেই', addedCart: 'বিক্রয়ের পণ্যে যোগ হয়েছে',
+          saleSaved: 'বিক্রয় সংরক্ষিত। ইনভয়েস: ', stockSaved: 'স্টক যোগ হয়েছে', expenseSaved: 'খরচ সংরক্ষিত',
+          productSaved: 'পণ্য যোগ হয়েছে', invalidItemDiscount: 'ডিসকাউন্ট ০ থেকে ১০০ শতাংশের মধ্যে দিন।'
+        }
+      };
+      let language = 'en';
+      let appData = null;
+      let cart = [];
+      let noticeTimer;
+      let qrScannerStream = null;
+      let qrScannerFrame = null;
+      let qrScannerTimer = null;
+      let qrDetector = null;
+      let qrDecoder = null;
+      let qrDecoderPromise = null;
+      let qrLastValue = '';
+      let qrScannerRequestId = 0;
+      let qrScannerStarting = false;
+      let qrCameraStartTimeout = null;
+      let googleTokenClient = null;
+      let googleAccessToken = null;
+      let googleTokenExpiresAt = 0;
+      let googleSignInPending = false;
+      let pendingServerCalls = [];
+      let googleIdentityAttempts = 0;
+
+      function t(key) { return translations[language][key] || key; }
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+        });
+      }
+      function money(value) {
+        return '৳' + Number(value || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-BD', { maximumFractionDigits: 2 });
+      }
+      function notify(message, isError) {
+        const node = document.getElementById('notice');
+        node.textContent = message;
+        node.classList.toggle('error', Boolean(isError));
+        node.hidden = false;
+        clearTimeout(noticeTimer);
+        noticeTimer = setTimeout(function () { node.hidden = true; }, 4500);
+      }
+      function setBusy(form, busy) {
+        form.querySelectorAll('button').forEach(function (button) { button.disabled = busy; });
+      }
+      function initializeGoogleSignIn() {
+        if (!window.google || !google.accounts || !google.accounts.oauth2) {
+          googleIdentityAttempts += 1;
+          if (googleIdentityAttempts < 50) {
+            window.setTimeout(initializeGoogleSignIn, 100);
+          } else {
+            notify(t('googleSignInError') + 'Google Identity Services did not load.', true);
+          }
+          return;
+        }
+        googleTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: window.POS_CONFIG.googleClientId,
+          scope: window.POS_CONFIG.oauthScopes.join(' '),
+          callback: function (response) {
+            googleSignInPending = false;
+            if (response.error || !response.access_token) {
+              clearPendingServerCalls();
+              notify(t('googleSignInError') + (response.error || 'No access token returned.'), true);
+              return;
+            }
+            googleAccessToken = response.access_token;
+            googleTokenExpiresAt = Date.now() + Number(response.expires_in || 3600) * 1000;
+            document.getElementById('googleSignInButton').textContent = t('googleSignedIn');
+            const calls = pendingServerCalls;
+            pendingServerCalls = [];
+            calls.forEach(function (call) {
+              executeServerCall(call.method, call.payload, call.onSuccess, call.form);
+            });
+            if (!calls.length) loadData();
+          },
+          error_callback: function (error) {
+            googleSignInPending = false;
+            clearPendingServerCalls();
+            notify(t('googleSignInError') + (error && error.message ? error.message : String(error)), true);
+          }
+        });
+      }
+      function clearPendingServerCalls() {
+        pendingServerCalls.forEach(function (call) {
+          if (call.form) setBusy(call.form, false);
+        });
+        pendingServerCalls = [];
+      }
+      function requestGoogleAccess() {
+        if (!window.POS_CONFIG.googleClientId ||
+            window.POS_CONFIG.googleClientId.indexOf('PASTE_') === 0 ||
+            !window.POS_CONFIG.appsScriptProjectId ||
+            window.POS_CONFIG.appsScriptProjectId.indexOf('PASTE_') === 0) {
+          clearPendingServerCalls();
+          notify(t('googleConfigMissing'), true);
+          return;
+        }
+        if (!googleTokenClient) {
+          clearPendingServerCalls();
+          notify(language === 'bn' ? 'Google সাইন-ইন লোড হচ্ছে, একটু পরে আবার চেষ্টা করুন।' : 'Google sign-in is loading. Please try again shortly.', true);
+          return;
+        }
+        try {
+          googleSignInPending = true;
+          googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? '' : 'consent' });
+        } catch (error) {
+          googleSignInPending = false;
+          clearPendingServerCalls();
+          notify(t('googleSignInError') + (error && error.message ? error.message : String(error)), true);
+        }
+      }
+      async function executeServerCall(method, payload, onSuccess, form) {
+        try {
+          if (!googleAccessToken || Date.now() >= googleTokenExpiresAt - 60000) {
+            googleAccessToken = null;
+            googleTokenExpiresAt = 0;
+            if (form) setBusy(form, false);
+            pendingServerCalls.push({ method: method, payload: payload, onSuccess: onSuccess, form: form });
+            if (!googleSignInPending) requestGoogleAccess();
+            return;
+          }
+          const response = await fetch(
+            'https://script.googleapis.com/v1/scripts/' +
+              encodeURIComponent(window.POS_CONFIG.appsScriptProjectId) + ':run',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + googleAccessToken,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                function: method,
+                parameters: payload === undefined ? [] : [payload],
+                devMode: false
+              })
+            }
+          );
+          const result = await response.json();
+          if (!response.ok || result.error) {
+            const message = result.error && result.error.message
+              ? result.error.message
+              : response.status + ' ' + response.statusText;
+            throw new Error(message);
+          }
+          if (form) setBusy(form, false);
+          if (onSuccess) onSuccess(result.response ? result.response.result : undefined);
+        } catch (error) {
+          if (form) setBusy(form, false);
+          notify(t('googleApiError') + (error && error.message ? error.message : String(error)), true);
+        }
+      }
+      function serverCall(method, payload, onSuccess, form) {
+        if (form) setBusy(form, true);
+        if (!googleAccessToken || Date.now() >= googleTokenExpiresAt - 60000) {
+          googleAccessToken = null;
+          googleTokenExpiresAt = 0;
+          pendingServerCalls.push({ method: method, payload: payload, onSuccess: onSuccess, form: form });
+          if (!googleSignInPending) requestGoogleAccess();
+          return;
+        }
+        executeServerCall(method, payload, onSuccess, form);
+      }
+      function loadData() {
+        document.getElementById('inventoryRows').innerHTML = '<tr><td class="empty" colspan="5">' + escapeHtml(t('loading')) + '</td></tr>';
+        serverCall('getAppData', undefined, function (data) {
+          appData = data;
+          render();
+        });
+      }
+      function render() {
+        if (!appData) return;
+        const metrics = appData.metrics;
+        ['todaySales', 'monthSales', 'monthProfit', 'monthExpenses', 'inventoryValue'].forEach(function (key) {
+          document.getElementById(key).textContent = money(metrics[key]);
+        });
+        document.getElementById('todaySalesOnSales').textContent = money(metrics.todaySales);
+        document.getElementById('lowStock').textContent = Number(metrics.lowStock).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-BD');
+        renderLowStock();
+        renderProductOptions();
+        renderInventory();
+        renderSales();
+        renderCart();
+      }
+      function renderProductOptions() {
+        const available = appData.products;
+        const saleInput = document.getElementById('saleProduct');
+        const selectedSaleProduct = getSelectedSaleProduct();
+        const stockSelect = document.getElementById('stockProduct');
+        const previousStockSku = stockSelect.value;
+        document.getElementById('saleProductOptions').innerHTML = available.map(function (item) {
+          return '<option value="' + escapeHtml(item.product + ' (' + item.sku + ')') + '"></option>';
+        }).join('');
+        if (selectedSaleProduct) {
+          saleInput.value = selectedSaleProduct.product + ' (' + selectedSaleProduct.sku + ')';
+        }
+        stockSelect.innerHTML = available.map(function (item) {
+          return '<option value="' + escapeHtml(item.sku) + '">' + escapeHtml(item.product) + ' (' + escapeHtml(item.sku) + ')</option>';
+        }).join('');
+        if (previousStockSku && available.some(function (item) { return item.sku === previousStockSku; })) {
+          stockSelect.value = previousStockSku;
+        }
+        if (!available.length) {
+          saleInput.value = '';
+          stockSelect.innerHTML = '<option value="">' + escapeHtml(t('noProducts')) + '</option>';
+        }
+        updateSelectedPrice();
+      }
+      function getSelectedSaleProduct() {
+        if (!appData) return null;
+        const value = document.getElementById('saleProduct').value.trim();
+        return appData.products.find(function (item) {
+          return item.sku === value || (item.product + ' (' + item.sku + ')') === value;
+        }) || null;
+      }
+      function renderInventory() {
+        const rows = appData.products.map(function (item) {
+          return '<tr><td>' + escapeHtml(item.sku) + '</td><td>' + escapeHtml(item.product) + '</td><td>' +
+            escapeHtml(item.category || '—') + '</td><td>' + escapeHtml(item.stock) + '</td><td>' +
+            money(item.sellingPrice) + '</td></tr>';
+        }).join('');
+        document.getElementById('inventoryRows').innerHTML = rows || '<tr><td class="empty" colspan="5">' + escapeHtml(t('noProducts')) + '</td></tr>';
+      }
+      function renderLowStock() {
+        const rows = appData.lowStockProducts.map(function (item) {
+          return '<tr><td>' + escapeHtml(item.sku) + '</td><td>' + escapeHtml(item.product) +
+            '</td><td>' + escapeHtml(Number(item.stock).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-BD')) + '</td></tr>';
+        }).join('');
+        document.getElementById('lowStockRows').innerHTML = rows ||
+          '<tr><td class="empty" colspan="3">' + escapeHtml(t('noLowStock')) + '</td></tr>';
+      }
+      function renderSales() {
+        const dashboardRows = appData.recentSales.map(function (sale) {
+          const products = sale.items.map(function (item) { return item.product; }).join(', ');
+          const quantity = sale.items.reduce(function (sum, item) { return sum + Number(item.quantity || 0); }, 0);
+          return '<tr><td>' + escapeHtml(sale.date) + '</td><td>' + escapeHtml(sale.invoice || '—') + '</td><td>' +
+            escapeHtml(products) + '</td><td>' + escapeHtml(quantity) + '</td><td>' + money(sale.total) + '</td></tr>';
+        }).join('');
+        const historyRows = appData.recentSales.map(function (sale, index) {
+          const products = sale.items.map(function (item) { return item.product; }).join(', ');
+          const deleteButton = sale.invoice
+            ? '<button class="secondary small" type="button" data-delete-invoice="' + index + '" data-i18n="delete">' + escapeHtml(t('delete')) + '</button>'
+            : '';
+          return '<tr><td>' + escapeHtml(sale.date) + '</td><td>' + escapeHtml(sale.invoice || '—') + '</td><td>' +
+            escapeHtml(products) + '</td><td>' + money(sale.total) + '</td><td><button class="small" type="button" data-print-invoice="' +
+            index + '" data-i18n="print">' + escapeHtml(t('print')) + '</button></td><td>' + deleteButton + '</td></tr>';
+        }).join('');
+        document.getElementById('salesRows').innerHTML = dashboardRows ||
+          '<tr><td class="empty" colspan="5">' + escapeHtml(t('noSales')) + '</td></tr>';
+        document.getElementById('recentSalesRows').innerHTML = historyRows ||
+          '<tr><td class="empty" colspan="6">' + escapeHtml(t('noSales')) + '</td></tr>';
+      }
+      function renderInvoiceReceipt(receipt) {
+        document.getElementById('receiptInvoice').textContent = receipt.invoice;
+        document.getElementById('receiptDate').textContent = receipt.date;
+        document.getElementById('receiptCustomer').textContent = receipt.customer || t('walkIn');
+        document.getElementById('receiptPayment').textContent = receipt.paymentMethod;
+        document.getElementById('receiptItems').innerHTML = receipt.items.map(function (item) {
+          return '<tr><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.quantity) +
+            '</td><td>' + money(item.unitPrice) + '</td><td>' + escapeHtml(item.discountPercent || 0) +
+            '%</td><td>' + money(item.total) + '</td></tr>';
+        }).join('');
+        document.getElementById('receiptSubtotal').textContent = money(receipt.subtotal == null ? receipt.total + Number(receipt.discount || 0) : receipt.subtotal);
+        document.getElementById('receiptDiscount').textContent = money(receipt.discount || 0);
+        document.getElementById('receiptTotal').textContent = money(receipt.total);
+        document.getElementById('invoiceReceipt').hidden = false;
+      }
+      function printDocument(mode) {
+        document.body.classList.remove('print-invoice');
+        document.body.classList.add(mode);
+        const receipt = document.getElementById('invoiceReceipt');
+        if (receipt) receipt.hidden = false;
+        window.setTimeout(function () { window.print(); }, 150);
+      }
+      window.addEventListener('afterprint', function () {
+        document.body.classList.remove('print-invoice');
+        document.getElementById('invoiceReceipt').hidden = true;
+      });
+      function renderCart() {
+        const tbody = document.getElementById('cartRows');
+        if (!cart.length) {
+          tbody.innerHTML = '<tr><td class="empty" colspan="5">' + escapeHtml(t('cartEmpty')) + '</td></tr>';
+        } else {
+          tbody.innerHTML = cart.map(function (item, index) {
+            return '<tr><td>' + escapeHtml(item.product) + '</td><td>' + escapeHtml(item.quantity) + '</td><td>' +
+              '<input type="number" min="0" max="100" step="0.01" value="' + escapeHtml(item.discountPercent || 0) +
+              '" data-item-discount="' + index + '" aria-label="' + escapeHtml(t('itemDiscountPercent')) + '">' +
+              '</td><td><span data-item-total="' + index + '">' + money(item.quantity * item.unitPrice) +
+              '</span></td><td><button class="secondary small" type="button" data-remove="' + index + '">' +
+              escapeHtml(t('remove')) + '</button></td></tr>';
+          }).join('');
+        }
+        updateSaleTotals();
+      }
+      function updateSaleTotals() {
+        const subtotal = cart.reduce(function (sum, item) { return sum + item.quantity * item.unitPrice; }, 0);
+        let itemDiscount = 0;
+        cart.forEach(function (item, index) {
+          const amount = item.quantity * item.unitPrice * (Number(item.discountPercent) || 0) / 100;
+          const roundedAmount = Math.round((amount + Number.EPSILON) * 100) / 100;
+          const totalCell = document.querySelector('[data-item-total="' + index + '"]');
+          if (totalCell) totalCell.textContent = money(item.quantity * item.unitPrice - roundedAmount);
+          itemDiscount += roundedAmount;
+        });
+        const discount = Number(document.getElementById('saleDiscount').value) || 0;
+        document.getElementById('salePayableTotal').value = money(Math.max(0, subtotal - itemDiscount - discount));
+      }
+      function updateSelectedPrice() {
+        if (!appData) return;
+        const selected = getSelectedSaleProduct();
+        document.getElementById('salePrice').value = selected ? selected.sellingPrice : '';
+      }
+      function addSaleProductToCart() {
+        const product = getSelectedSaleProduct();
+        const quantity = Number(document.getElementById('saleQuantity').value);
+        const unitPrice = Number(document.getElementById('salePrice').value);
+        if (!product) {
+          notify(appData && appData.products.length ? t('searchProduct') : t('noProducts'), true);
+          return false;
+        }
+        if (!Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice < 0) {
+          notify(language === 'bn' ? 'সঠিক পরিমাণ ও মূল্য দিন।' : 'Enter a valid quantity and price.', true);
+          return false;
+        }
+        cart.push({ sku: product.sku, product: product.product, quantity: quantity, unitPrice: unitPrice, discountPercent: 0 });
+        renderCart();
+        notify(t('addedCart'));
+        return true;
+      }
+      function findProductFromQr(value) {
+        if (!appData) return null;
+        const code = String(value || '').trim().toLocaleLowerCase();
+        return appData.products.find(function (item) {
+          return String(item.sku).trim().toLocaleLowerCase() === code ||
+            String(item.product).trim().toLocaleLowerCase() === code ||
+            (item.product + ' (' + item.sku + ')').trim().toLocaleLowerCase() === code;
+        }) || null;
+      }
+      function showQrScannerError(message) {
+        document.getElementById('qrScanner').hidden = false;
+        const status = document.getElementById('qrScannerStatus');
+        status.classList.remove('scanner-loading');
+        status.classList.add('scanner-error');
+        status.textContent = message;
+        status.hidden = false;
+        document.getElementById('retryQrScanner').hidden = false;
+      }
+      function stopQrScanner() {
+        qrScannerRequestId += 1;
+        qrScannerStarting = false;
+        if (qrScannerFrame !== null) {
+          cancelAnimationFrame(qrScannerFrame);
+          qrScannerFrame = null;
+        }
+        if (qrScannerTimer !== null) {
+          clearTimeout(qrScannerTimer);
+          qrScannerTimer = null;
+        }
+        if (qrCameraStartTimeout !== null) {
+          clearTimeout(qrCameraStartTimeout);
+          qrCameraStartTimeout = null;
+        }
+        if (qrScannerStream) {
+          qrScannerStream.getTracks().forEach(function (track) { track.stop(); });
+          qrScannerStream = null;
+        }
+        const video = document.getElementById('qrScannerVideo');
+        video.pause();
+        video.srcObject = null;
+        qrDetector = null;
+        qrDecoder = null;
+        qrLastValue = '';
+        document.getElementById('qrScanner').hidden = true;
+        document.getElementById('qrScannerStatus').hidden = true;
+        document.getElementById('qrScannerStatus').textContent = '';
+        document.getElementById('qrScannerStatus').classList.remove('scanner-error');
+        document.getElementById('qrScannerStatus').classList.add('scanner-loading');
+        document.getElementById('retryQrScanner').hidden = true;
+      }
+      function loadQrDecoder() {
+        if (typeof window.jsQR === 'function') return Promise.resolve(window.jsQR);
+        if (!qrDecoderPromise) {
+          qrDecoderPromise = new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+            script.async = true;
+            script.onload = function () {
+              if (typeof window.jsQR === 'function') resolve(window.jsQR);
+              else reject(new Error('QR decoder did not initialize.'));
+            };
+            script.onerror = function () {
+              reject(new Error('QR decoder script could not be downloaded.'));
+            };
+            document.head.appendChild(script);
+          }).catch(function (error) {
+            qrDecoderPromise = null;
+            throw error;
+          });
+        }
+        return qrDecoderPromise;
+      }
+      function handleQrValue(value) {
+        const qrValue = String(value || '').trim();
+        if (!qrValue) {
+          qrLastValue = '';
+          return false;
+        }
+        const product = findProductFromQr(qrValue);
+        if (product) {
+          document.getElementById('saleProduct').value = product.product + ' (' + product.sku + ')';
+          updateSelectedPrice();
+          stopQrScanner();
+          document.getElementById('saleQuantity').focus();
+          notify(t('qrProductSelected') + product.product);
+          return true;
+        }
+        if (qrValue !== qrLastValue) {
+          qrLastValue = qrValue;
+          notify(t('qrNoMatch'), true);
+        }
+        return false;
+      }
+      function scanQrFrame() {
+        if (!qrScannerStream || (!qrDetector && !qrDecoder)) return;
+        const scanFrame = function () {
+          const video = document.getElementById('qrScannerVideo');
+          if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+            scanQrFrame();
+            return;
+          }
+          if (qrDetector) {
+            qrDetector.detect(video).then(function (codes) {
+              if (!qrScannerStream) return;
+              if (codes.length && handleQrValue(codes[0].rawValue)) return;
+              if (!codes.length) qrLastValue = '';
+              scanQrFrame();
+            }).catch(function (error) {
+              const message = t('qrCameraError') + (error && error.message ? error.message : String(error));
+              stopQrScanner();
+              showQrScannerError(message);
+            });
+            return;
+          }
+          const canvas = document.createElement('canvas');
+          const scale = Math.min(1, 480 / video.videoWidth);
+          canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+          canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+          const context = canvas.getContext('2d', { willReadFrequently: true });
+          if (context) {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const image = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = qrDecoder(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
+            if (code && handleQrValue(code.data)) return;
+            if (!code) qrLastValue = '';
+          }
+          if (qrScannerStream) {
+            qrScannerTimer = setTimeout(scanQrFrame, 120);
+          }
+        };
+        if (qrDetector) {
+          qrScannerFrame = requestAnimationFrame(scanFrame);
+        } else {
+          qrScannerTimer = setTimeout(scanFrame, 0);
+        }
+      }
+      async function startQrScanner() {
+        if (qrScannerStream || qrScannerStarting) return;
+        if (!window.isSecureContext) {
+          showQrScannerError(t('qrSecureContext'));
+          return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showQrScannerError(t('qrSecureContext'));
+          return;
+        }
+        const requestId = ++qrScannerRequestId;
+        qrScannerStarting = true;
+        document.getElementById('qrScanner').hidden = false;
+        const status = document.getElementById('qrScannerStatus');
+        status.classList.remove('scanner-error');
+        status.classList.add('scanner-loading');
+        status.textContent = t('qrCameraStarting');
+        status.hidden = false;
+        document.getElementById('retryQrScanner').hidden = true;
+        let streamPromise;
+        try {
+          const cameraPromise = navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+          }).then(function (stream) {
+            if (requestId !== qrScannerRequestId) {
+              stream.getTracks().forEach(function (track) { track.stop(); });
+              return null;
+            }
+            return stream;
+          });
+          const timeoutPromise = new Promise(function (_, reject) {
+            qrCameraStartTimeout = setTimeout(function () {
+              const error = new Error(t('qrCameraTimeout'));
+              error.name = 'CameraStartTimeoutError';
+              reject(error);
+            }, 20000);
+          });
+          streamPromise = Promise.race([cameraPromise, timeoutPromise]);
+          const supportsBarcodeDetector = 'BarcodeDetector' in window &&
+            typeof window.BarcodeDetector.getSupportedFormats === 'function';
+          const decoderPromise = supportsBarcodeDetector
+            ? Promise.resolve(null)
+            : loadQrDecoder();
+          let formats = [];
+          if (supportsBarcodeDetector) {
+            formats = await window.BarcodeDetector.getSupportedFormats();
+          }
+          const stream = await streamPromise;
+          if (!stream || requestId !== qrScannerRequestId) return;
+          qrScannerStream = stream;
+          const decoder = await decoderPromise;
+          if (requestId !== qrScannerRequestId) {
+            stream.getTracks().forEach(function (track) { track.stop(); });
+            qrScannerStream = null;
+            return;
+          }
+          if (supportsBarcodeDetector && formats.indexOf('qr_code') !== -1) {
+            qrDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+          } else {
+            qrDecoder = decoder || await loadQrDecoder();
+          }
+          const video = document.getElementById('qrScannerVideo');
+          video.srcObject = qrScannerStream;
+          await video.play();
+          status.hidden = true;
+          scanQrFrame();
+        } catch (error) {
+          if (requestId !== qrScannerRequestId) return;
+          stopQrScanner();
+          if (error && error.name === 'NotAllowedError') {
+            showQrScannerError(t('qrCameraPermission'));
+          } else if (error && error.name === 'NotFoundError') {
+            showQrScannerError(t('qrCameraMissing'));
+          } else if (error && error.name === 'NotReadableError') {
+            showQrScannerError(t('qrCameraBusy'));
+          } else if (error && error.name === 'CameraStartTimeoutError') {
+            showQrScannerError(t('qrCameraTimeout'));
+          } else {
+            showQrScannerError(t('qrCameraError') + (error && error.message ? error.message : String(error)));
+          }
+        } finally {
+          if (qrCameraStartTimeout !== null) {
+            clearTimeout(qrCameraStartTimeout);
+            qrCameraStartTimeout = null;
+          }
+          if (requestId === qrScannerRequestId) qrScannerStarting = false;
+        }
+      }
+      function applyLanguage() {
+        document.documentElement.lang = language;
+        document.querySelectorAll('[data-i18n]').forEach(function (node) {
+          const value = t(node.dataset.i18n);
+          if (node.tagName === 'OPTION') node.textContent = value;
+          else node.textContent = value;
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (node) {
+          node.placeholder = t(node.dataset.i18nPlaceholder);
+        });
+        document.getElementById('languageButton').textContent = language === 'en' ? 'বাংলা' : 'English';
+        render();
+      }
+      function showPage(pageId, updateAddress) {
+        const target = document.getElementById(pageId);
+        if (!target || !target.classList.contains('page')) pageId = 'dashboardPage';
+        document.querySelectorAll('.page').forEach(function (page) {
+          page.hidden = page.id !== pageId;
+        });
+        document.querySelectorAll('[data-page]').forEach(function (button) {
+          if (button.dataset.page === pageId) button.setAttribute('aria-current', 'page');
+          else button.removeAttribute('aria-current');
+        });
+        if (updateAddress && window.location.hash !== '#' + pageId) {
+          window.location.hash = pageId;
+        }
+        window.scrollTo(0, 0);
+        if (pageId !== 'salesPage' &&
+            (!document.getElementById('qrScanner').hidden || qrScannerStream || qrScannerStarting)) {
+          stopQrScanner();
+        }
+      }
+
+      document.getElementById('languageButton').addEventListener('click', function () {
+        language = language === 'en' ? 'bn' : 'en';
+        applyLanguage();
+        if (googleAccessToken) document.getElementById('googleSignInButton').textContent = t('googleSignedIn');
+      });
+      document.getElementById('googleSignInButton').addEventListener('click', requestGoogleAccess);
+      document.querySelector('.page-nav').addEventListener('click', function (event) {
+        const button = event.target.closest('[data-page]');
+        if (button) showPage(button.dataset.page, true);
+      });
+      document.querySelectorAll('[data-go-page]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          showPage(button.dataset.goPage, true);
+        });
+      });
+      window.addEventListener('hashchange', function () {
+        showPage(window.location.hash.slice(1), false);
+      });
+      document.getElementById('refreshButton').addEventListener('click', loadData);
+      document.querySelectorAll('[data-refresh-data]').forEach(function (button) {
+        button.addEventListener('click', loadData);
+      });
+      document.getElementById('saleProduct').addEventListener('input', updateSelectedPrice);
+      document.getElementById('saleProduct').addEventListener('change', updateSelectedPrice);
+      document.getElementById('saleProduct').addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        if (addSaleProductToCart()) {
+          this.value = '';
+          document.getElementById('salePrice').value = '';
+          this.focus();
+        }
+      });
+      document.getElementById('scanQrButton').addEventListener('click', startQrScanner);
+      document.getElementById('retryQrScanner').addEventListener('click', startQrScanner);
+      document.getElementById('closeQrScanner').addEventListener('click', stopQrScanner);
+      document.getElementById('qrScanner').addEventListener('click', function (event) {
+        if (event.target === event.currentTarget) stopQrScanner();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !document.getElementById('qrScanner').hidden) stopQrScanner();
+      });
+      document.getElementById('saleDiscount').addEventListener('input', updateSaleTotals);
+      document.getElementById('addCartButton').addEventListener('click', function () {
+        addSaleProductToCart();
+      });
+      document.getElementById('cartRows').addEventListener('click', function (event) {
+        const button = event.target.closest('[data-remove]');
+        if (button) {
+          cart.splice(Number(button.dataset.remove), 1);
+          renderCart();
+        }
+      });
+      document.getElementById('cartRows').addEventListener('input', function (event) {
+        const input = event.target.closest('[data-item-discount]');
+        if (!input) return;
+        const discountPercent = Number(input.value);
+        if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+          input.setCustomValidity(t('invalidItemDiscount'));
+          notify(t('invalidItemDiscount'), true);
+          return;
+        }
+        input.setCustomValidity('');
+        cart[Number(input.dataset.itemDiscount)].discountPercent = discountPercent;
+        updateSaleTotals();
+      });
+      document.getElementById('saleForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!cart.length) return notify(language === 'bn' ? 'বিক্রয়ের জন্য অন্তত একটি পণ্য যোগ করুন।' : 'Add at least one item to the sale.', true);
+        const discount = Number(document.getElementById('saleDiscount').value);
+        const subtotal = cart.reduce(function (sum, item) { return sum + item.quantity * item.unitPrice; }, 0);
+        const itemDiscount = cart.reduce(function (sum, item) {
+          return sum + Math.round((item.quantity * item.unitPrice * item.discountPercent / 100 + Number.EPSILON) * 100) / 100;
+        }, 0);
+        if (!Number.isFinite(discount) || discount < 0 || discount + itemDiscount > subtotal) {
+          return notify(language === 'bn' ? 'ডিসকাউন্ট মোট বিক্রয়মূল্যের বেশি হতে পারবে না।' : 'Discount cannot exceed the sale subtotal.', true);
+        }
+        const form = event.currentTarget;
+        serverCall('recordSale', {
+          customer: document.getElementById('saleCustomer').value,
+          paymentMethod: document.getElementById('salePayment').value,
+          discount: discount,
+          items: cart.map(function (item) {
+            return {
+              sku: item.sku,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discountPercent: item.discountPercent
+            };
+          })
+        }, function (result) {
+          if (!result || result.success !== true || !result.receipt) {
+            notify(language === 'bn' ? 'বিক্রয় সংরক্ষণ নিশ্চিত হয়নি, তাই প্রিন্ট করা হয়নি।' : 'Sale was not confirmed as saved, so it was not printed.', true);
+            return;
+          }
+          const receipt = result.receipt;
+          cart = [];
+          form.reset();
+          document.getElementById('saleQuantity').value = '1';
+          document.getElementById('saleDiscount').value = '0';
+          renderCart();
+          notify(t('saleSaved') + result.invoice);
+          renderInvoiceReceipt(receipt);
+          printDocument('print-invoice');
+          loadData();
+        }, form);
+      });
+      document.getElementById('recentSalesRows').addEventListener('click', function (event) {
+        const deleteButton = event.target.closest('[data-delete-invoice]');
+        if (deleteButton && appData) {
+          const invoice = appData.recentSales[Number(deleteButton.dataset.deleteInvoice)];
+          if (!invoice || !invoice.invoice) {
+            notify(language === 'bn' ? 'ইনভয়েসটি পাওয়া যায়নি।' : 'Invoice not found.', true);
+            return;
+          }
+          const confirmMessage = t('deleteInvoiceConfirm').replace('{invoice}', invoice.invoice);
+          if (!window.confirm(confirmMessage)) return;
+          serverCall('deleteSale', invoice.invoice, function (result) {
+            if (!result || result.success !== true) {
+              notify(language === 'bn' ? 'ইনভয়েস মুছে ফেলা নিশ্চিত হয়নি।' : 'Invoice deletion was not confirmed.', true);
+              return;
+            }
+            notify(t('saleDeleted') + invoice.invoice);
+            loadData();
+          });
+          return;
+        }
+        const button = event.target.closest('[data-print-invoice]');
+        if (!button || !appData) return;
+        const invoice = appData.recentSales[Number(button.dataset.printInvoice)];
+        if (!invoice || !invoice.items.length) {
+          notify(language === 'bn' ? 'এই ইনভয়েসের পণ্যের তথ্য পাওয়া যায়নি।' : 'No item details found for this invoice.', true);
+          return;
+        }
+        renderInvoiceReceipt({
+          shop: appData.shopName,
+          invoice: invoice.invoice,
+          date: invoice.date,
+          customer: invoice.customer,
+          paymentMethod: invoice.paymentMethod,
+          items: invoice.items,
+          subtotal: invoice.subtotal,
+          discount: invoice.discount,
+          total: invoice.total
+        });
+        printDocument('print-invoice');
+      });
+      document.getElementById('stockForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        serverCall('addStock', {
+          sku: document.getElementById('stockProduct').value,
+          quantity: document.getElementById('stockQuantity').value,
+          notes: document.getElementById('stockNotes').value
+        }, function () {
+          form.reset();
+          notify(t('stockSaved'));
+          loadData();
+        }, form);
+      });
+      document.getElementById('expenseForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        serverCall('addExpense', {
+          category: document.getElementById('expenseCategory').value,
+          amount: document.getElementById('expenseAmount').value,
+          paymentMethod: document.getElementById('expensePayment').value,
+          notes: document.getElementById('expenseNotes').value
+        }, function () {
+          form.reset();
+          notify(t('expenseSaved'));
+          loadData();
+        }, form);
+      });
+      document.getElementById('productForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        serverCall('addProduct', {
+          sku: document.getElementById('newSku').value,
+          product: document.getElementById('newProductName').value,
+          category: document.getElementById('newCategory').value,
+          costPrice: document.getElementById('newCost').value,
+          sellingPrice: document.getElementById('newPrice').value,
+          stock: document.getElementById('newStock').value
+        }, function () {
+          form.reset();
+          document.getElementById('newStock').value = '0';
+          notify(t('productSaved'));
+          loadData();
+        }, form);
+      });
+
+      showPage(window.location.hash.slice(1) || 'dashboardPage', false);
+      applyLanguage();
+      initializeGoogleSignIn();
+    </script>
+  </body>
+</html>
